@@ -32,26 +32,49 @@ var app ={
     });
   },
   setButtonListners:function(){
+
     $('#save').click(function(){
       var label = $('#snip_label').val();
       var snip = $('#code_snip').val();
-      self.saveSnipit(label,snip);
+      var category = $( "#category option:selected" ).val();
+      self.saveSnipit(label,snip,category);
     });
+
     $('#addEntry').click(function(){
       $('#category').css('display','none');
       $('#newCategory').css('display','block');
       var category = $( "#category option:selected" ).text();
-      console.log(category)
       //self.addCategory()
     });
 
+    $('#view').click(function(){
+      self.viewList()
+    });
   },
-  saveSnipit:function(label,snip){
+  viewList:function(){
+    $('#addView').css('display','none');
+    $('#viewData').css('display','block');
+    db.transaction(function (tx) {
+      tx.executeSql('SELECT * FROM codeSnips;',[],function(tx, results){
+         var len = results.rows.length, i;
+          for (i = 0; i < len; i++) {
+            var obj = results.rows.item(i);
+            $('#list').append("<li>"+obj['label']+"</li>");
+
+          }
+          //$('#list').append("")
+      });
+    });
+
+  },
+
+  saveSnipit:function(label,snip,category){
     var label = label;
     var snip = snip;
+    var category= category;
     db.transaction(function (tx) {
-      tx.executeSql("INSERT INTO codeSnips (label, code_snip) VALUES (?,?);",
-          [label,snip],
+      tx.executeSql("INSERT INTO codeSnips (label, code_snip,category) VALUES (?,?,?);",
+          [label,snip,category],
           self.onSuccess,
           self.onError
       );
@@ -66,6 +89,7 @@ var app ={
   },
   removeDataBase:function(){
     db.transaction(function (tx) {
+      tx.executeSql('DROP TABLE category;');
       tx.executeSql('DROP TABLE codeSnips;');
     });
   }
